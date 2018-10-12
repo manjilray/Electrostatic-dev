@@ -1,0 +1,56 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  1.6                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      electrostaticProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+electrostatics   on;
+
+mixturePermittivityModel    Looyenga;
+
+vacuumPermittivity  vacuumPermittivity [ -1 -3 4 0 0 2 0 ] 8.85419e-12;
+
+particleRelPermittivity particleRelPermittivity [ 0 0 0 0 0 0 0 ] 2.25;
+
+fluidRelPermittivity    fluidRelPermittivity [ 0 0 0 0 0 0 0 ] 1.0;
+
+//for charge gen
+initialRhoq   initialRhoq [ 0 -3 1 0 0 1 0 ] 0.002;
+
+saturatedRhoq   saturatedRhoq [ 0 -3 1 0 0 1 0 ] -0.112;
+
+poissonsRatio   poissonsRatio [ 0 0 0 0 0 0 0 ] 0.5;
+
+youngsModulus   youngsModulus [ 1 -1 -2 0 0 0 0 ] 2.0e6;
+
+chargingEfficiencyWall  chargingEfficiencyWall [ 0 -3 0 0 0 0 0 ] 5e10;
+
+chargingEfficiencyParticle  chargingEfficiencyParticle [ 0 -3 0 0 0 0 0 ] 5e10;
+
+potentialDifference potentialDifference [1 2 -3 0 0 -1 0] 0.9;
+
+particleWorkFunction particleWorkFunction [1 2 -3 0 0 -1 0] 6.0e-4;
+
+z0 z0 [ 0 1 0 0 0 0 0 ] 0.79e-6;
+
+particleDiameter particleDiameter [0 1 0 0 0 0 0] 3.625e-4;
+
+alphaMax alphaMax [0 0 0 0 0 0 0] 0.63;
+
+particleDensity particleDensity [1 -3 0 0 0 0 0] 935;
+
+
+
+// ************************************************************************* //
+

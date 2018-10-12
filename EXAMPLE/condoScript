@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Copy/paste this job script into a text file and submit with the command:
+#    sbatch thefilename
+
+#SBATCH --time=24:00:00   # walltime limit (HH:MM:SS)
+#SBATCH --nodes=1   # number of nodes
+#SBATCH --ntasks-per-node=16   # 16 processor core(s) per node
+#SBATCH --job-name="5e10"
+#SBATCH --mail-user=fahadc@iastate.edu   # email address
+#SBATCH --mail-type=END
+#SBATCH --mail-type=FAIL
+#SBATCH --output="log.5e10" # job standard output file (%j replaced by job id)
+#SBATCH --error="log.5e10" # job standard error file (%j replaced by job id)
+
+# LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
+
+module load intel/18.1
+blockMesh
+setFields
+decomposePar
+mpirun -n 16 electrostaticDiffusion -parallel
+reconstructPar
+rm -rf processor*

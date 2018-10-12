@@ -1,0 +1,111 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      rhoq;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 -3 1 0 0 1 0];
+
+internalField   uniform 0;
+;
+
+boundaryField
+{
+    inlet
+    {
+        type            fixedValue;
+        value           uniform 0;
+    }
+    outlet
+    {
+        type            zeroGradient;
+    }
+    walls
+    {
+        type            codedFixedValue;
+        value           uniform 0;
+        redirectType    wallContactCharging;
+        
+        code
+        #{
+            const dictionary& electrostaticProperties = db().lookupObject<IOdictionary>("electrostaticProperties");
+            
+            //const dimensionedScalar& initialRhoq = electrostaticProperties.lookup("initialRhoq");
+            const dimensionedScalar& saturatedRhoq = electrostaticProperties.lookup("saturatedRhoq");
+            const dimensionedScalar& poissonsRatio = electrostaticProperties.lookup("poissonsRatio");
+            const dimensionedScalar& youngsModulus = electrostaticProperties.lookup("youngsModulus");
+            const dimensionedScalar& chargingEfficiency = electrostaticProperties.lookup("chargingEfficiency");
+            const dimensionedScalar& potentialDifference = electrostaticProperties.lookup("potentialDifference");
+            const dimensionedScalar& vacuumPermittivity = electrostaticProperties.lookup("vacuumPermittivity");
+            const dimensionedScalar& particleRelPermittivity = electrostaticProperties.lookup("particleRelPermittivity");
+            const dimensionedScalar& particleDiameter = electrostaticProperties.lookup("particleDiameter");
+            const dimensionedScalar& particleDensity = electrostaticProperties.lookup("particleDensity");
+            const dimensionedScalar& alphaMax = electrostaticProperties.lookup("alphaMax");
+            
+            //const volScalarField& alphas = db().lookupObject<volScalarField>("alpha.particles");
+            //const volScalarField& thetas = db().lookupObject<volScalarField>("Theta.particles");
+            const volScalarField& rhoq = db().lookupObject<volScalarField>("rhoq"); 
+            
+            const scalarField& alphasPatchField =
+                this->patch().lookupPatchField<volScalarField, scalar>("alpha.particles");
+            const scalarField& thetasPatchField =
+                this->patch().lookupPatchField<volScalarField, scalar>("Theta.particles");
+            const scalarField& rhoqPatchField =
+                this->patch().lookupPatchField<volScalarField, scalar>("rhoq");
+            //calculate Vp, g0, ks, z0, kq, C1, qnew = qinf + (qold -qinf)*exp(-C1/qinf*delt)
+                       
+            scalarField g0 = 1.0/(1.0-(Foam::pow((alphasPatchField/alphaMax.value()),1.0/3.0)));
+            scalar ks = 1.364*(Foam::pow(particleDiameter.value(),2.0))*(Foam::pow((particleDensity.value()*(1.0-poissonsRatio.value())/youngsModulus.value()),2.0/5.0));
+            scalar z0 = particleDiameter.value()/2000;
+            scalar kq = potentialDifference.value()*chargingEfficiency.value()*vacuumPermittivity.value()*particleRelPermittivity.value()/z0;
+
+            scalarField C1 = 3.0/5.0*g0*ks*kq*(Foam::pow(2.0,19.0/10.0))*(Foam::exp(Foam::lgamma(2.0/5.0)))/(Foam::pow((Foam::constant::mathematical::pi),3.0/2.0))*alphasPatchField*(Foam::pow(thetasPatchField,9.0/10.0))/(Foam::pow(particleDiameter.value(),3.0));
+            
+            scalar delt = rhoq.mesh().time().deltaT().value();
+            
+            operator==((saturatedRhoq.value()+(rhoqPatchField-saturatedRhoq.value())*(Foam::exp(-C1/(saturatedRhoq.value()*delt*(this->patch().magSf())))))*alphasPatchField); 
+            
+
+            //volScalarField::boundaryField&  rhoqBoundaryField = rhoq.boundaryFieldRef();
+            /*
+            
+            forAll(rhoq,patchI)
+            {
+                if (rhoq[patchI] != "walls") continue;
+                forAll(rhoq[patchI],faceI)
+                {
+                    //value for alphap: alphas.boundaryField()[patchI][faceI];
+                    rhoq[patchI][faceI] = saturatedRhoq +(rhoq[patchI][faceI] - saturatedRhoq)*0.1 ;
+                }             
+              */  
+                
+                /*if (rhoqBoundaryField[patchI] != "walls") continue;
+                forAll(rhoqBoundaryField[patchI],faceI)
+                {
+                    //value for alphap: alphas.boundaryField()[patchI][faceI];
+                    rhoqBoundaryField[patchI][faceI] = equation 
+                }
+            }*/
+
+        #};
+    }
+    
+    frontAndBackPlanes
+    {
+        type            empty;
+    }
+}
+
+
+// ************************************************************************* //

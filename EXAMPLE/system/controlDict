@@ -1,0 +1,244 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+
+application     electrostaticDiffusion;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         10;
+
+deltaT          5e-5;
+
+writeControl    adjustableRunTime;
+
+writeInterval   10.0;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression uncompressed;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable on;
+
+adjustTimeStep  yes;
+
+maxCo           0.4;
+
+maxDeltaT       5e-5;
+
+functions
+{
+    fieldAverage1
+    {
+        type            fieldAverage;
+        libs            ("libfieldFunctionObjects.so");
+        writeControl    writeTime;
+        periodicRestart     true;
+        restartPeriod       10.0;
+        fields
+        (
+            U.particles
+            {
+                 mean        on;
+                 prime2Mean  off;
+                 base        time;
+            }
+
+            U.air
+            {
+                 mean        on;
+                 prime2Mean  off;
+                 base        time;
+            }
+
+            alpha.particles
+            {
+                 mean        on;
+                 prime2Mean  off;
+                 base        time;
+            }
+
+            Theta.particles
+            {
+                 mean        on;
+                 prime2Mean  off;
+                 base        time;
+            }
+
+            rhoq
+            {
+                 mean        on;
+                 prime2Mean  off;
+                 base        time;
+            }
+
+            Vq
+            {
+                 mean        on;
+                 prime2Mean  off;
+                 base        time;
+            }
+
+            PE
+            {
+                 mean        on;
+                 prime2Mean  off;
+                 base        time;
+            }
+
+            Eq
+            {
+                 mean        on;
+                 prime2Mean  off;
+                 base        time;
+            }
+
+            Fq
+            {
+                 mean        on;
+                 prime2Mean  off;
+                 base        time;
+            }
+        );
+    }
+
+    Voltotal1
+    {
+        type            volFieldValue;
+        libs            ("libfieldFunctionObjects.so");
+
+        log             true;
+        writeControl    writeTime;
+        writeFields     false;
+
+        regionType      all;
+        operation       weightedVolIntegrate;
+
+        weightField     alpha.particlesMean;
+
+        fields
+        (
+           rhoqMean
+           Theta.particlesMean
+           PEMean
+           U.particlesMean
+           EqMean
+        );
+    }
+
+    Voltotal2
+    {
+        type            volFieldValue;
+        libs            ("libfieldFunctionObjects.so");
+
+        log             true;
+        writeControl    writeTime;
+        writeFields     false;
+
+        regionType      all;
+        operation       volIntegrate;
+
+        fields
+        (
+           FqMean
+        );
+    }
+
+    COV
+    {
+        type            volFieldValue;
+        libs            ("libfieldFunctionObjects.so");
+
+        log             true;
+        writeControl    writeTime;
+        writeFields     false;
+
+        regionType      all;
+        operation       CoV;
+
+        fields
+        (
+           rhoqMean
+           VqMean
+           PEMean
+           alpha.particlesMean
+           Theta.particlesMean
+        );
+    }
+
+    MIN
+    {
+        type            volFieldValue;
+        libs            ("libfieldFunctionObjects.so");
+
+        log             true;
+        writeControl    writeTime;
+        writeFields     false;
+
+        regionType      all;
+        operation       min;
+
+        fields
+        (
+           rhoqMean
+           VqMean
+           PEMean
+           alpha.particlesMean
+           Theta.particlesMean
+           U.particlesMean
+           EqMean
+           FqMean
+        );
+    }
+
+    MAX
+    {
+        type            volFieldValue;
+        libs            ("libfieldFunctionObjects.so");
+
+        log             true;
+        writeControl    writeTime;
+        writeFields     false;
+
+        regionType      all;
+        operation       max;
+
+        fields
+        (
+           rhoqMean
+           VqMean
+           PEMean
+           alpha.particlesMean
+           Theta.particlesMean
+           U.particlesMean
+           EqMean
+           FqMean
+        );
+    }
+}
